@@ -5,7 +5,7 @@ const express = require('express')
 const app = express()
 const mongoose = require('mongoose');
 
-var db = mongoose.connect('mongodb://localhost:27017/salas-ensayo');
+var db = mongoose.connect('mongodb://localhost:27017/salasensayo');
 
 /*
 Clases
