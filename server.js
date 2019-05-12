@@ -83,6 +83,7 @@ app.post('/api/login', (req, res) => {
 
 
 
+
 // Pido estado de una sala
 app.get('/sala/:name', function (req, res) {
   Sala.findOne({ name: req.params.name }).then(function (response) {
