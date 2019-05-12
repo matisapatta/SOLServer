@@ -1,39 +1,98 @@
 /*
 Dependencias
  */
-const express = require('express')
-const app = express()
+const express = require('express');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 
-var db = mongoose.connect('mongodb://localhost:27017/salasensayo');
+var db = mongoose.connect('mongodb://localhost:27017/salasonline');
 
 /*
-Clases
+Schemas
  */
+const { Sala } = require('./models/Sala');
+const { User } = require('./models/User');
 
- /*
- Esto va en un archivo separado
-  */
-var Schema = mongoose.Schema;
 
-var salaSchema = new Schema({
-  name: String,
-  disponible: { type: Boolean, default: true }
+const app = express()
+app.use(bodyParser.json());
+app.use(cookieParser());
+
+/**************** SALAS  ****************/
+
+/**************** GET  ****************/
+
+app.get('/api/', function (req, res) {
+  console.log("Andando")
+  res.send('Andando')
 });
-var Sala = mongoose.model('Sala', salaSchema);
-/*
-Hasta acá
- */
+
+app.get('/api/getsala', function (req, res) {
+
+})
 
 
-app.get('/', function(req, res) {
-  res.send('Hello World!!')
-});
+
+/**************** USERS  ****************/
+
+/**************** GET  ****************/
+app.get('/api/users', (req, res) => {
+  User.find({}, (err, users) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).send(users)
+  })
+})
+
+/**************** POST  ****************/
+
+app.post('/api/register', (req, res) => {
+  const user = new User(req.body);
+  user.save((err, doc) => {
+      if (err) return res.json({ success: false })
+      res.status(200).json({
+          success: true,
+          user: doc
+      })
+  })
+})
+
+app.post('/api/login', (req, res) => {
+  User.findOne({ 'email': req.body.email }, (err, user) => {
+      if (!user) return res.json({ isAuth: false, message: 'Email no encontrado' });
+      user.comparePassword(req.body.password, function (err, isMatch) {
+          if (!isMatch) return res.json({
+              isAuth: false,
+              message: 'Contraseña incorrecta'
+          });
+          user.generateToken((err, user) => {
+              if (err) return res.status(400).send(err);
+              res.cookie('auth', user.token).json({
+                  isAuth: true,
+                  id: user._id,
+                  email: user.email,
+                  name: user.name,
+                  lastname: user.lastname,
+                  role: user.role
+              })
+          })
+      })
+  })
+})
+
+
+
 
 // Pido estado de una sala
-app.get('/sala/:name', function(req, res) {
-  Sala.findOne({name: req.params.name}).then(function(response) {
-    if (!response) return res.json({err: 'No la encontre'});
+app.get('/sala/:name', function (req, res) {
+  Sala.findOne({ name: req.params.name }).then(function (response) {
+    if (!response) return res.json({ err: 'No la encontré' });
+    res.json(response);
+  });
+});
+
+app.get('/sala/', function (req, res) {
+  Sala.find().then(function (response) {
     res.json(response);
   });
 });
@@ -42,22 +101,23 @@ app.get('/sala/:name', function(req, res) {
 app.post('/sala/:name', function (req, res) {
   const sala = new Sala({ name: req.params.name });
   sala.save().then(function () {
-    res.json({msg: 'sala creada ' +  sala.name});
+    res.json({ msg: 'sala creada ' + sala.name });
   });
 });
 
 app.post('/sala/:name/ocupar', function (req, res) {
-  Sala.findOne({name: req.params.name}).then(function(sala) {
-    if (!sala) return res.json({err: 'No la encontre'});
+  Sala.findOne({ name: req.params.name }).then(function (sala) {
+    if (!sala) return res.json({ err: 'No la encontre' });
 
     sala.disponible = false;
-    sala.save().then(function() {
-      res.send("Sala " +  sala.name + " ocupada.");
+    sala.save().then(function () {
+      res.send("Sala " + sala.name + " ocupada.");
     });
   });
 });
 
 
-app.listen(3000, function() {
-  console.log('Example app listening on port 3000!')
-});
+const port = process.env.PORT || 3008;
+app.listen(port, () => {
+  console.log("Server running on port", port)
+})

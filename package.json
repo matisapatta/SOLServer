@@ -18,8 +18,11 @@
   },
   "homepage": "https://github.com/matisapatta/SOLServer#readme",
   "dependencies": {
+    "bcrypt": "^3.0.6",
+    "cookie-parser": "^1.4.4",
     "express": "^4.16.3",
-    "mongoose": "^5.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.5.7",
     "nodemon": "^1.17.4"
   }
 }
