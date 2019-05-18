@@ -6,16 +6,19 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 
-var db = mongoose.connect('mongodb://localhost:27017/salasonline');
-
 /*
 Schemas
  */
 const { Sala } = require('./models/Sala');
 const { User } = require('./models/User');
+const { auth } = require('./middleware/auth.js')
 
 
-const app = express()
+const app = express();
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://localhost:27017/salasonline');
+// var db = mongoose.connect('mongodb://localhost:27017/salasonline');
+
 app.use(bodyParser.json());
 app.use(cookieParser());
 
@@ -42,6 +45,24 @@ app.get('/api/users', (req, res) => {
       if (err) return res.status(400).send(err);
       res.status(200).send(users)
   })
+})
+
+app.get('/api/auth', auth, (req, res) => {
+  res.json({
+      isAuth: true,
+      id: req.user._id,
+      email: req.user.email,
+      name: req.user.name,
+      lastname: req.user.lastname
+  })
+})
+
+app.get('/api/logout', auth, (req, res) => {
+  req.user.deleteToken(req.token, (err, user) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).send(user)
+  })
+
 })
 
 /**************** POST  ****************/
@@ -79,6 +100,10 @@ app.post('/api/login', (req, res) => {
       })
   })
 })
+
+
+
+
 
 
 // Pido estado de una sala
