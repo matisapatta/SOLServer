@@ -30,7 +30,11 @@ const userSchema = mongoose.Schema({
     },
     role: {
         type: Number,
-        default: 0
+        default: 0 // 0 es usuario, 1 es dueño, 2 es admin
+    },
+    isLocal:{
+        type: Boolean,
+        default: true
     },
     token: {
         type: String

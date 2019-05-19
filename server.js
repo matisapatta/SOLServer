@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 /*
 Schemas
  */
-const { Sala } = require('./models/Sala');
+const { Sala, Room } = require('./models/Sala');
 const { User } = require('./models/User');
 const { auth } = require('./middleware/auth.js')
 
@@ -32,10 +32,35 @@ app.get('/api/', function (req, res) {
 });
 
 app.get('/api/getsala', function (req, res) {
-
+  const text = req.query.search;
+  Sala.find({$text:{$search:text}}).exec((err,doc)=>{
+    if (err) return res.status(400).send(err);
+    res.send(doc);
+  })
 })
 
 
+app.get('/api/sala', (req, res) => {
+  let id = req.query._id;
+  Sala.findById(id, (err, doc) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).send(doc);
+  })
+})
+
+/**************** POST ****************/
+app.post('/api/testsalasave', (req, res) => {
+  console.log(req.body)
+  const sala = new Sala(req.body);
+  sala.save((err, doc) => {
+    console.log(err);
+      if (err) return res.json({ success: false })
+      res.status(200).json({
+          success: true,
+          sala: doc
+      })
+  })
+})
 
 /**************** USERS  ****************/
 

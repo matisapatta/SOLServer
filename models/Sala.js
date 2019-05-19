@@ -45,5 +45,9 @@ const salaSchema = mongoose.Schema({
 }, { timestamps: true })
 
 const Sala = mongoose.model('Sala', salaSchema);
+const Room = mongoose.model('Room',roomSchema);
 
-module.exports = { Sala };
+Sala.createIndexes({name:"text",location:"text"});
+// db.salas.createIndex({name:"text",location:"text"})
+
+module.exports = { Sala, Room };
