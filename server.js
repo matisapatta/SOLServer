@@ -78,7 +78,8 @@ app.get('/api/auth', auth, (req, res) => {
       id: req.user._id,
       email: req.user.email,
       name: req.user.name,
-      lastname: req.user.lastname
+      lastname: req.user.lastname,
+      role: req.user.role,
   })
 })
 
@@ -111,17 +112,28 @@ app.post('/api/login', (req, res) => {
               isAuth: false,
               message: 'Contraseña incorrecta'
           });
-          user.generateToken((err, user) => {
+          if(req.body.rememberMe){
+            user.generateToken((err, user) => {
               if (err) return res.status(400).send(err);
               res.cookie('auth', user.token).json({
                   isAuth: true,
                   id: user._id,
+                  role: user.role,
                   email: user.email,
                   name: user.name,
                   lastname: user.lastname,
-                  role: user.role
               })
           })
+          } else {
+            res.json({
+              isAuth: true,
+              id: user._id,
+              role: user.role,
+              email: user.email,
+              name: user.name,
+              lastname: user.lastname,
+            })
+          }
       })
   })
 })
