@@ -18,7 +18,7 @@ const app = express();
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/salasonline');
 // var db = mongoose.connect('mongodb://localhost:27017/salasonline');
-
+mongoose.set('useFindAndModify', false);
 app.use(bodyParser.json());
 app.use(cookieParser());
 
@@ -33,7 +33,7 @@ app.get('/api/', function (req, res) {
 
 app.get('/api/getsala', function (req, res) {
   const text = req.query.search;
-  Sala.find({$text:{$search:text}}).exec((err,doc)=>{
+  Sala.find({ $text: { $search: text } }).exec((err, doc) => {
     if (err) return res.status(400).send(err);
     res.send(doc);
   })
@@ -43,8 +43,8 @@ app.get('/api/getsala', function (req, res) {
 app.get('/api/sala', (req, res) => {
   let id = req.query._id;
   Sala.findById(id, (err, doc) => {
-      if (err) return res.status(400).send(err);
-      res.status(200).send(doc);
+    if (err) return res.status(400).send(err);
+    res.status(200).send(doc);
   })
 })
 
@@ -54,11 +54,11 @@ app.post('/api/testsalasave', (req, res) => {
   const sala = new Sala(req.body);
   sala.save((err, doc) => {
     console.log(err);
-      if (err) return res.json({ success: false })
-      res.status(200).json({
-          success: true,
-          sala: doc
-      })
+    if (err) return res.json({ success: false })
+    res.status(200).json({
+      success: true,
+      sala: doc
+    })
   })
 })
 
@@ -67,26 +67,27 @@ app.post('/api/testsalasave', (req, res) => {
 /**************** GET  ****************/
 app.get('/api/users', (req, res) => {
   User.find({}, (err, users) => {
-      if (err) return res.status(400).send(err);
-      res.status(200).send(users)
+    if (err) return res.status(400).send(err);
+    res.status(200).send(users)
   })
 })
 
 app.get('/api/auth', auth, (req, res) => {
   res.json({
-      isAuth: true,
-      id: req.user._id,
-      email: req.user.email,
-      name: req.user.name,
-      lastname: req.user.lastname,
-      role: req.user.role,
+    isAuth: true,
+    id: req.user._id,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    phone: req.user.phone
   })
 })
 
 app.get('/api/logout', auth, (req, res) => {
   req.user.deleteToken(req.token, (err, user) => {
-      if (err) return res.status(400).send(err);
-      res.status(200).send(user)
+    if (err) return res.status(400).send(err);
+    res.status(200).send(user)
   })
 
 })
@@ -96,45 +97,65 @@ app.get('/api/logout', auth, (req, res) => {
 app.post('/api/register', (req, res) => {
   const user = new User(req.body);
   user.save((err, doc) => {
-      if (err) return res.json({ success: false })
-      res.status(200).json({
-          success: true,
-          user: doc
-      })
+    if (err) return res.json({ success: false })
+    res.status(200).json({
+      success: true,
+      user: doc
+    })
   })
 })
 
 app.post('/api/login', (req, res) => {
   User.findOne({ 'email': req.body.email }, (err, user) => {
-      if (!user) return res.json({ isAuth: false, message: 'Email no encontrado' });
-      user.comparePassword(req.body.password, function (err, isMatch) {
-          if (!isMatch) return res.json({
-              isAuth: false,
-              message: 'Contraseña incorrecta'
-          });
-          if(req.body.rememberMe){
-            user.generateToken((err, user) => {
-              if (err) return res.status(400).send(err);
-              res.cookie('auth', user.token).json({
-                  isAuth: true,
-                  id: user._id,
-                  role: user.role,
-                  email: user.email,
-                  name: user.name,
-                  lastname: user.lastname,
-              })
+    if (!user) return res.json({ isAuth: false, message: 'Email no encontrado' });
+    user.comparePassword(req.body.password, function (err, isMatch) {
+      if (!isMatch) return res.json({
+        isAuth: false,
+        message: 'Contraseña incorrecta'
+      });
+      if (req.body.rememberMe) {
+        user.generateToken((err, user) => {
+          if (err) return res.status(400).send(err);
+          res.cookie('auth', user.token).json({
+            isAuth: true,
+            id: user._id,
+            role: user.role,
+            email: user.email,
+            name: user.name,
+            lastname: user.lastname,
+            phone: user.phone
           })
-          } else {
-            res.json({
-              isAuth: true,
-              id: user._id,
-              role: user.role,
-              email: user.email,
-              name: user.name,
-              lastname: user.lastname,
-            })
-          }
-      })
+        })
+      } else {
+        res.json({
+          isAuth: true,
+          id: user._id,
+          role: user.role,
+          email: user.email,
+          name: user.name,
+          lastname: user.lastname,
+          phone: user.phone
+        })
+      }
+    })
+  })
+})
+
+/**************** UPDATE  ****************/
+
+app.post('/api/userupdate', (req, res) => {
+  User.findByIdAndUpdate(req.body._id, req.body, { new: true }, (err, user) => {
+    if (err) return res.status(400).send(err);
+    res.json({
+      success: true,
+      isAuth: true,
+      id: user._id,
+      role: user.role,
+      email: user.email,
+      name: user.name,
+      lastname: user.lastname,
+      phone: user.phone
+    })
   })
 })
 

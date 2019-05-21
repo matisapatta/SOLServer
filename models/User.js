@@ -28,6 +28,9 @@ const userSchema = mongoose.Schema({
         type: String,
         maxlength: 100
     },
+    phone: {
+        type: String
+    },
     role: {
         type: Number,
         default: 0 // 0 es usuario, 1 es dueño, 2 es admin
