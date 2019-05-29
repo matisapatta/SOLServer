@@ -31,9 +31,19 @@ app.get('/api/', function (req, res) {
   res.send('Andando')
 });
 
+// app.get('/api/getsala', function (req, res) {
+//   const text = req.query.name;
+//   console.log(text)
+//   Sala.find({ $text: { $search: text } }).exec((err, doc) => {
+//     if (err) return res.status(400).send(err);
+//     res.send(doc);
+//   })
+// })
+
 app.get('/api/getsala', function (req, res) {
-  const text = req.query.search;
-  Sala.find({ $text: { $search: text } }).exec((err, doc) => {
+  const name = req.query.name;
+  const location = req.query.location;
+  Sala.find({ $and: [{ name: name }, { location : location ? location : '' }] }).exec((err, doc) => {
     if (err) return res.status(400).send(err);
     res.send(doc);
   })
