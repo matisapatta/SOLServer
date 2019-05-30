@@ -39,7 +39,6 @@ app.get('/api/getsala', function (req, res) {
     query.and({name})
   if (location){
     var locationArr = location.split(',');
-    console.log(locationArr)
     locationArr.forEach((element)=>{
       query.or({ "location":element });
     })
@@ -55,6 +54,14 @@ app.get('/api/getsala', function (req, res) {
 app.get('/api/sala', (req, res) => {
   let id = req.query._id;
   Sala.findById(id, (err, doc) => {
+    if (err) return res.status(400).send(err);
+    res.status(200).send(doc);
+  })
+})
+
+app.get('/api/getsalasowner', (req, res) => {
+  let id = req.query.id;
+  Sala.find({ownerId: id}, (err, doc) => {
     if (err) return res.status(400).send(err);
     res.status(200).send(doc);
   })
