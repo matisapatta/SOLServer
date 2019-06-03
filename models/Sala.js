@@ -19,6 +19,7 @@ const roomSchema = mongoose.Schema({
   },
 })
 
+
 const salaSchema = mongoose.Schema({
   name: {
     type: String,
@@ -28,6 +29,14 @@ const salaSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  address: {
+    type: String,
+    required: true
+  },
+  phoneNumber:[{
+    type: String,
+    required: true
+  }],
   description: {
     type: String,
     required: true
@@ -36,7 +45,14 @@ const salaSchema = mongoose.Schema({
     type: String,
     default: 'n/a'
   },
-  images:[String],
+  images: [{
+    original: {
+      type: String
+    },
+    thumbnail: {
+      type: String
+    }
+  }],
   rooms: [roomSchema],
   ownerId: {
     type: String,
@@ -45,9 +61,9 @@ const salaSchema = mongoose.Schema({
 }, { timestamps: true })
 
 const Sala = mongoose.model('Sala', salaSchema);
-const Room = mongoose.model('Room',roomSchema);
+const Room = mongoose.model('Room', roomSchema);
 
-Sala.createIndexes({name:"text",location:"text"});
+Sala.createIndexes({ name: "text", location: "text" });
 // db.salas.createIndex({name:"text",location:"text"})
 
 module.exports = { Sala, Room };
