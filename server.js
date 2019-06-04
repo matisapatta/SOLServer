@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
+const fileUpload = require('express-fileupload');
 
 /*
 Schemas
@@ -21,6 +22,7 @@ mongoose.connect('mongodb://localhost:27017/salasonline');
 mongoose.set('useFindAndModify', false);
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(fileUpload());
 
 /**************** SALAS  ****************/
 
@@ -158,6 +160,16 @@ app.post('/api/login', (req, res) => {
       }
     })
   })
+})
+
+
+
+
+
+app.post('/api/upload', function (req,res){
+  const files = req.body;
+  console.log(files)
+  res.send(200);
 })
 
 /**************** UPDATE  ****************/
