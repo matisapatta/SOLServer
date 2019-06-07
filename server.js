@@ -168,7 +168,6 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/upload', function (req,res){
   const files = req.body;
-  console.log(files)
   res.send(200);
 })
 
