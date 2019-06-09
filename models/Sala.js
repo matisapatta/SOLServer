@@ -53,6 +53,20 @@ const salaSchema = mongoose.Schema({
       type: String
     }
   }],
+  days: [{
+    type: String
+  }],
+  open: [{
+    day: {
+      type: String
+    },
+    from: {
+      type: String
+    },
+    to: {
+      type: String
+    },
+  }],
   rooms: [roomSchema],
   ownerId: {
     type: String,

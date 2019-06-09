@@ -19,6 +19,7 @@
   "homepage": "https://github.com/matisapatta/SOLServer#readme",
   "dependencies": {
     "bcrypt": "^3.0.6",
+    "cloudinary": "^1.14.0",
     "cookie-parser": "^1.4.4",
     "express": "^4.16.3",
     "express-fileupload": "^1.1.4",

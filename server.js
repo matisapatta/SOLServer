@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const fileUpload = require('express-fileupload');
+var cloudinary = require('cloudinary').v2;
 
 /*
 Schemas
@@ -23,6 +24,11 @@ mongoose.set('useFindAndModify', false);
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(fileUpload());
+cloudinary.config({ 
+  cloud_name: 'matisapatta', 
+  api_key: '241374799914715', 
+  api_secret: 'PI-_UnA5NYHrQOsKkYFIlFg0R9Q' 
+});
 
 /**************** SALAS  ****************/
 
@@ -82,6 +88,21 @@ app.post('/api/testsalasave', (req, res) => {
     })
   })
 })
+
+app.post('/api/savesala', (req, res) => {
+  console.log(req.body)
+  const sala = new Sala(req.body);
+  sala.save((err, doc) => {
+    console.log(err);
+    if (err) return res.json({ success: false })
+    res.status(200).json({
+      success: true,
+      sala: doc
+    })
+  })
+})
+
+
 
 /**************** USERS  ****************/
 
@@ -167,8 +188,20 @@ app.post('/api/login', (req, res) => {
 
 
 app.post('/api/upload', function (req,res){
-  const files = req.body;
-  res.send(200);
+  const file = req.body.file;
+  const folder = req.body.folder;
+  const name = req.body.name;
+  // console.log(file);
+  // console.log(req.body)
+  cloudinary.uploader.upload(file, 
+  {resource_type: "image", public_id: `salasonline/${folder}/${name}`,
+  overwrite: true},
+  function(error, result) {
+    console.log(result, error);
+    res.json({
+      pic: result.secure_url
+    });
+  });
 })
 
 /**************** UPDATE  ****************/
