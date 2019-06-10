@@ -11,8 +11,9 @@ var cloudinary = require('cloudinary').v2;
 /*
 Schemas
  */
-const { Sala, Room } = require('./models/Sala');
+const { Sala } = require('./models/Sala');
 const { User } = require('./models/User');
+const { Reservations } = require('./models/Reservations')
 const { auth } = require('./middleware/auth.js')
 
 
@@ -21,13 +22,13 @@ mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/salasonline');
 // var db = mongoose.connect('mongodb://localhost:27017/salasonline');
 mongoose.set('useFindAndModify', false);
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(fileUpload());
-cloudinary.config({ 
-  cloud_name: 'matisapatta', 
-  api_key: '241374799914715', 
-  api_secret: 'PI-_UnA5NYHrQOsKkYFIlFg0R9Q' 
+cloudinary.config({
+  cloud_name: 'matisapatta',
+  api_key: '241374799914715',
+  api_secret: 'PI-_UnA5NYHrQOsKkYFIlFg0R9Q'
 });
 
 /**************** SALAS  ****************/
@@ -44,13 +45,13 @@ app.get('/api/getsala', function (req, res) {
   const name = req.query.name;
   const location = req.query.location;
   if (name)
-    query.and({name})
-  if (location){
+    query.and({ name })
+  if (location) {
     var locationArr = location.split(',');
-    locationArr.forEach((element)=>{
-      query.or({ "location":element });
+    locationArr.forEach((element) => {
+      query.or({ "location": element });
     })
-    
+
   }
   query.exec((err, doc) => {
     if (err) return res.status(400).send(err);
@@ -69,7 +70,7 @@ app.get('/api/sala', (req, res) => {
 
 app.get('/api/getsalasowner', (req, res) => {
   let id = req.query.id;
-  Sala.find({ownerId: id}, (err, doc) => {
+  Sala.find({ ownerId: id }, (err, doc) => {
     if (err) return res.status(400).send(err);
     res.status(200).send(doc);
   })
@@ -80,7 +81,7 @@ app.post('/api/testsalasave', (req, res) => {
   console.log(req.body)
   const sala = new Sala(req.body);
   sala.save((err, doc) => {
-    console.log(err);
+
     if (err) return res.json({ success: false })
     res.status(200).json({
       success: true,
@@ -90,14 +91,25 @@ app.post('/api/testsalasave', (req, res) => {
 })
 
 app.post('/api/savesala', (req, res) => {
-  console.log(req.body)
   const sala = new Sala(req.body);
   sala.save((err, doc) => {
-    console.log(err);
-    if (err) return res.json({ success: false })
+
+    if (err) return res.json({ sala: false })
     res.status(200).json({
-      success: true,
+      // success: true,
       sala: doc
+    })
+  })
+})
+
+app.post('/api/initreservations',(req,res) => {
+  const reservations = new Reservations();
+  reservations.ownerId = req.body.ownerId;
+  reservations.salaId = req.body._id;
+  reservations.save((err,doc)=>{
+    if(err) return res.json({error: "No se ha podido inicializar"})
+    res.status(200).json({
+      reservations: doc
     })
   })
 })
@@ -187,21 +199,29 @@ app.post('/api/login', (req, res) => {
 
 
 
-app.post('/api/upload', function (req,res){
+app.post('/api/upload', function (req, res) {
   const file = req.body.file;
   const folder = req.body.folder;
   const name = req.body.name;
-  // console.log(file);
   // console.log(req.body)
-  cloudinary.uploader.upload(file, 
-  {resource_type: "image", public_id: `salasonline/${folder}/${name}`,
-  overwrite: true},
-  function(error, result) {
-    console.log(result, error);
+  if (file) {
+    cloudinary.uploader.upload(file,
+      {
+        resource_type: "image", public_id: `salasonline/${folder}/${name}`,
+        overwrite: true
+      },
+      function (error, result) {
+        console.log(result, error);
+        res.json({
+          pic: result.secure_url
+        });
+      });
+  } else {
     res.json({
-      pic: result.secure_url
-    });
-  });
+      error: "Hubo un error"
+    })
+  }
+
 })
 
 /**************** UPDATE  ****************/

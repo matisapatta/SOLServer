@@ -30,10 +30,18 @@ const salaSchema = mongoose.Schema({
     required: true
   },
   address: {
-    type: String,
-    required: true
+    stringaddress: {
+      type: String,
+      required: true
+    },
+    lat: {
+      type: String,
+    },
+    lng: {
+      type: String,
+    }
   },
-  phoneNumber:[{
+  phoneNumber: [{
     type: String,
     required: true
   }],
