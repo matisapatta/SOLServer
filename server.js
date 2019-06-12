@@ -13,7 +13,7 @@ Schemas
  */
 const { Sala } = require('./models/Sala');
 const { User } = require('./models/User');
-const { Reservations } = require('./models/Reservations')
+const { Reservation } = require('./models/Reservations')
 const { auth } = require('./middleware/auth.js')
 
 
@@ -76,19 +76,63 @@ app.get('/api/getsalasowner', (req, res) => {
   })
 })
 
+app.get('/api/getreservationsbysala', (req, res) => {
+  let id = req.query._id;
+  Reservation.find({ salaId: id }, (err, doc) => {
+    if (err) return res.status(400).send(err);
+    res.status(200).send(doc);
+  })
+})
+
+app.get('/api/getreservationsbyuser', (req, res) => {
+  let id = req.query._id;
+  Reservation.find({ userId: id }, (err, doc) => {
+    if (err) {
+      return res.status(400).send(err);
+    }
+    res.status(200).send(doc);
+  })
+})
+
 /**************** POST ****************/
 app.post('/api/testsalasave', (req, res) => {
   console.log(req.body)
   const sala = new Sala(req.body);
   sala.save((err, doc) => {
 
-    if (err) return res.json({ success: false })
+    if (err) {
+      console.log(err)
+      return res.json({ success: false })
+    }
     res.status(200).json({
       success: true,
       sala: doc
     })
   })
 })
+
+app.post('/api/savereservation', (req, res) => {
+  const reserv = new Reservation(req.body);
+  reserv.save((err, doc) => {
+    if (err) {
+      console.log(err)
+      return res.json({ reserv: false })
+    }
+    res.status(200).json({ reservation: doc })
+  })
+})
+
+app.post('/api/deletereservation', (req, res) => {
+  console.log(req.query.id)
+  Reservation.findByIdAndRemove(req.query.id, (err, doc) => {
+    if (err) {
+      console.log(err)
+      return res.json({ reserv: false })
+    }
+    res.status(200).json({ reservation: doc })
+  })
+})
+
 
 app.post('/api/savesala', (req, res) => {
   const sala = new Sala(req.body);
@@ -102,17 +146,18 @@ app.post('/api/savesala', (req, res) => {
   })
 })
 
-app.post('/api/initreservations',(req,res) => {
-  const reservations = new Reservations();
-  reservations.ownerId = req.body.ownerId;
-  reservations.salaId = req.body._id;
-  reservations.save((err,doc)=>{
-    if(err) return res.json({error: "No se ha podido inicializar"})
-    res.status(200).json({
-      reservations: doc
-    })
-  })
-})
+// app.post('/api/initreservations', (req, res) => {
+//   const reservations = new Reservations();
+//   reservations.ownerId = req.body.ownerId;
+//   reservations.salaId = req.body._id;
+//   reservations.save((err, doc) => {
+//     if (err) return res.json({ error: "No se ha podido inicializar" })
+//     res.status(200).json({
+//       reservations: doc
+//     })
+//   })
+// })
+
 
 
 
@@ -134,7 +179,8 @@ app.get('/api/auth', auth, (req, res) => {
     name: req.user.name,
     lastname: req.user.lastname,
     role: req.user.role,
-    phone: req.user.phone
+    phone: req.user.phone,
+    reservations: req.user.reservations,
   })
 })
 
@@ -177,7 +223,8 @@ app.post('/api/login', (req, res) => {
             email: user.email,
             name: user.name,
             lastname: user.lastname,
-            phone: user.phone
+            phone: user.phone,
+            reservations: user.reservations,
           })
         })
       } else {
@@ -188,15 +235,13 @@ app.post('/api/login', (req, res) => {
           email: user.email,
           name: user.name,
           lastname: user.lastname,
-          phone: user.phone
+          phone: user.phone,
+          reservations: user.reservations,
         })
       }
     })
   })
 })
-
-
-
 
 
 app.post('/api/upload', function (req, res) {
@@ -230,14 +275,15 @@ app.post('/api/userupdate', (req, res) => {
   User.findByIdAndUpdate(req.body._id, req.body, { new: true }, (err, user) => {
     if (err) return res.status(400).send(err);
     res.json({
-      success: true,
+      // success: true,
       isAuth: true,
       id: user._id,
       role: user.role,
       email: user.email,
       name: user.name,
       lastname: user.lastname,
-      phone: user.phone
+      phone: user.phone,
+      reservations: user.reservations,
     })
   })
 })

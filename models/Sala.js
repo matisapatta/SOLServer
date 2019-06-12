@@ -76,6 +76,9 @@ const salaSchema = mongoose.Schema({
     },
   }],
   rooms: [roomSchema],
+  price : {
+    type: String
+  },
   ownerId: {
     type: String,
     required: true

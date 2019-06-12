@@ -39,6 +39,9 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: true
     },
+    reservations:[{
+        type: String
+    }],
     token: {
         type: String
     }
