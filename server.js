@@ -144,6 +144,16 @@ app.post('/api/cancelreservation', (req, res) => {
   })
 })
 
+app.post('/api/deletereservation', (req, res) => {
+  Reservation.findByIdAndUpdate(req.query.id, { cancelled: true, cancelledBy: req.body.userid }, (err, doc) => {
+    if (err) {
+      console.log(err)
+      return res.json({ reserv: false })
+    }
+    res.status(200).json({ reservation: doc })
+  })
+})
+
 
 app.post('/api/savesala', (req, res) => {
   const sala = new Sala(req.body);
