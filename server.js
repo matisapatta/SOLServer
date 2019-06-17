@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const fileUpload = require('express-fileupload');
 var cloudinary = require('cloudinary').v2;
+var mercadopago = require('mercadopago');
 
 /*
 Schemas
@@ -31,6 +32,11 @@ cloudinary.config({
   api_secret: 'PI-_UnA5NYHrQOsKkYFIlFg0R9Q'
 });
 
+mercadopago.configure({
+  sandbox: true,
+  access_token: 'TEST-2929332727335212-061617-d76e5feadeeeb1c6907bcb7d470899cd-444651392'
+})
+
 /**************** SALAS  ****************/
 
 /**************** GET  ****************/
@@ -44,6 +50,8 @@ app.get('/api/getsala', function (req, res) {
   var query = Sala.find({})
   const name = req.query.name;
   const location = req.query.location;
+  const pricefrom = req.query.pricefrom;
+  const priceto = req.query.priceto;
   if (name)
     query.and({ name })
   if (location) {
@@ -51,8 +59,12 @@ app.get('/api/getsala', function (req, res) {
     locationArr.forEach((element) => {
       query.or({ "location": element });
     })
-
   }
+  if (pricefrom)
+    query.and({ "pricefrom": { $gte: pricefrom } })
+  if (priceto)
+    query.and({ "priceto": { $lte: priceto } })
+
   query.exec((err, doc) => {
     if (err) return res.status(400).send(err);
     res.send(doc);
@@ -78,7 +90,7 @@ app.get('/api/getsalasowner', (req, res) => {
 
 app.get('/api/getreservationsbysala', (req, res) => {
   let id = req.query._id;
-  Reservation.find({ salaId: id }, (err, doc) => {
+  Reservation.find({ salaId: id, cancelled: false }, (err, doc) => {
     if (err) return res.status(400).send(err);
     res.status(200).send(doc);
   })
@@ -86,7 +98,7 @@ app.get('/api/getreservationsbysala', (req, res) => {
 
 app.get('/api/getreservationsbyuser', (req, res) => {
   let id = req.query._id;
-  Reservation.find({ userId: id }, (err, doc) => {
+  Reservation.find({ userId: id, cancelled: false }, (err, doc) => {
     if (err) {
       return res.status(400).send(err);
     }
@@ -122,9 +134,8 @@ app.post('/api/savereservation', (req, res) => {
   })
 })
 
-app.post('/api/deletereservation', (req, res) => {
-  console.log(req.query.id)
-  Reservation.findByIdAndRemove(req.query.id, (err, doc) => {
+app.post('/api/cancelreservation', (req, res) => {
+  Reservation.findByIdAndUpdate(req.query.id, { cancelled: true, cancelledBy: req.body.userid }, (err, doc) => {
     if (err) {
       console.log(err)
       return res.json({ reserv: false })
@@ -144,6 +155,44 @@ app.post('/api/savesala', (req, res) => {
       sala: doc
     })
   })
+})
+
+app.post('/api/pay', (req, res) => {
+  const item = req.body.item;
+  const payer = req.body.payer;
+  var preference = {
+    items: [{
+      id: 1234,
+      title: item.title,
+      quantity: item.quantity,
+      currency_id: item.currency_id,
+      unit_price: item.unit_price
+    }],
+    payer: {
+      email: payer.email,
+      name: payer.name,
+      surname: payer.surname,
+      date_created: payer.date_created
+    },
+    binary_mode: true,
+    external_reference: req.body.reservationId,
+    back_urls: {
+      success: "https://www.tu-sitio/success",
+      failure: "http://www.tu-sitio/failure",
+      pending: "http://www.tu-sitio/pending"
+  },
+  auto_return: 'approved',
+  }
+  console.log(preference)
+  res.status(200)
+  mercadopago.preferences.create(preference)
+  .then(function (preference) {
+    console.log(preference)
+    return res.send(preference)
+  }).catch(function (error) {
+    console.log(error)
+    return res.send(error)
+  });
 })
 
 // app.post('/api/initreservations', (req, res) => {
@@ -176,6 +225,7 @@ app.get('/api/auth', auth, (req, res) => {
     isAuth: true,
     id: req.user._id,
     email: req.user.email,
+    avatar: req.user.avatar,
     name: req.user.name,
     lastname: req.user.lastname,
     role: req.user.role,
@@ -183,6 +233,8 @@ app.get('/api/auth', auth, (req, res) => {
     reservations: req.user.reservations,
   })
 })
+
+
 
 app.get('/api/logout', auth, (req, res) => {
   req.user.deleteToken(req.token, (err, user) => {
@@ -223,6 +275,7 @@ app.post('/api/login', (req, res) => {
             email: user.email,
             name: user.name,
             lastname: user.lastname,
+            avatar: user.avatar,
             phone: user.phone,
             reservations: user.reservations,
           })
@@ -235,6 +288,7 @@ app.post('/api/login', (req, res) => {
           email: user.email,
           name: user.name,
           lastname: user.lastname,
+          avatar: user.avatar,
           phone: user.phone,
           reservations: user.reservations,
         })
@@ -282,6 +336,7 @@ app.post('/api/userupdate', (req, res) => {
       email: user.email,
       name: user.name,
       lastname: user.lastname,
+      avatar: user.avatar,
       phone: user.phone,
       reservations: user.reservations,
     })

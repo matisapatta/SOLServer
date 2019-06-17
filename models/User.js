@@ -15,6 +15,12 @@ const userSchema = mongoose.Schema({
         trim: true,
         unique: 1
     },
+    avatar: {
+        type: String
+    },
+    prefLocation:{
+        type: String
+    },
     password: {
         type: String,
         required: true,

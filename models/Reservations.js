@@ -48,7 +48,7 @@ const reservationSchema = mongoose.Schema({
         type: String
     },
     hours: {
-        type: String
+        type: Number
     },
     timestamp: {
         type: String
@@ -59,6 +59,13 @@ const reservationSchema = mongoose.Schema({
     paid: {
         type: Boolean
     },
+    cancelled: {
+        type: Boolean
+    },
+    cancelledBy: {
+        type: String
+    },
+
 
 }, { timestamps: true })
 

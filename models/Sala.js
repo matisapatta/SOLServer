@@ -17,6 +17,9 @@ const roomSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  price: {
+    type: Number
+  },
 })
 
 
@@ -75,10 +78,13 @@ const salaSchema = mongoose.Schema({
       type: String
     },
   }],
-  rooms: [roomSchema],
-  price : {
-    type: String
+  pricefrom: {
+    type: Number
   },
+  priceto: {
+    type: Number
+  },
+  rooms: [roomSchema],
   ownerId: {
     type: String,
     required: true

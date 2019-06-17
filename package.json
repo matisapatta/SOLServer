@@ -24,6 +24,7 @@
     "express": "^4.16.3",
     "express-fileupload": "^1.1.4",
     "jsonwebtoken": "^8.5.1",
+    "mercadopago": "^1.0.23",
     "mongoose": "^5.5.7",
     "nodemon": "^1.19.1"
   }
