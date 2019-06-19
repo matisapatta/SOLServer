@@ -65,6 +65,12 @@ const reservationSchema = mongoose.Schema({
     cancelledBy: {
         type: String
     },
+    reviewed: {
+        type: Boolean
+    },
+    reviewedBy: {
+        type: String
+    },
 
 
 }, { timestamps: true })

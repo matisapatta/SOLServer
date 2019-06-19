@@ -145,6 +145,15 @@ app.post('/api/cancelreservation', (req, res) => {
 })
 
 app.post('/api/deletereservation', (req, res) => {
+  Reservation.findByIdAndRemove(req.query.id, (err, doc) => {
+    if (err) {
+      return res.json(err)
+    }
+    res.status(200).json({ deleted: true })
+  })
+})
+
+app.post('/api/deletereservation', (req, res) => {
   Reservation.findByIdAndUpdate(req.query.id, { cancelled: true, cancelledBy: req.body.userid }, (err, doc) => {
     if (err) {
       console.log(err)
@@ -160,6 +169,20 @@ app.post('/api/savesala', (req, res) => {
   sala.save((err, doc) => {
 
     if (err) return res.json({ sala: false })
+    res.status(200).json({
+      // success: true,
+      sala: doc
+    })
+  })
+})
+
+app.post('/api/updatesala', (req, res) => {
+  const id = req.body._id;
+  Sala.findByIdAndUpdate(id, req.body, { new: true }, (err, doc) => {
+    if (err) {
+      console.log(err)
+      return res.json({ sala: false })
+    }
     res.status(200).json({
       // success: true,
       sala: doc
@@ -187,22 +210,22 @@ app.post('/api/pay', (req, res) => {
     binary_mode: true,
     external_reference: req.body.reservationId,
     back_urls: {
-      success: "https://www.tu-sitio/success",
-      failure: "http://www.tu-sitio/failure",
-      pending: "http://www.tu-sitio/pending"
-  },
-  auto_return: 'approved',
+      success: `http://localhost:3000/paymentok/${req.body.reservationId}`,
+      failure: `http://localhost:3000/paymentko/${req.body.reservationId}`,
+      pending: `http://localhost:3000/paymentp/${req.body.reservationId}`,
+    },
+    auto_return: 'approved',
   }
   console.log(preference)
   res.status(200)
   mercadopago.preferences.create(preference)
-  .then(function (preference) {
-    console.log(preference)
-    return res.send(preference)
-  }).catch(function (error) {
-    console.log(error)
-    return res.send(error)
-  });
+    .then(function (preference) {
+      console.log(preference)
+      return res.send(preference)
+    }).catch(function (error) {
+      console.log(error)
+      return res.send(error)
+    });
 })
 
 // app.post('/api/initreservations', (req, res) => {
