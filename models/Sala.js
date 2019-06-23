@@ -84,6 +84,9 @@ const salaSchema = mongoose.Schema({
   priceto: {
     type: Number
   },
+  reviews: [{
+    type: String
+  }],
   rooms: [roomSchema],
   ownerId: {
     type: String,
