@@ -65,12 +65,32 @@ const reservationSchema = mongoose.Schema({
     cancelledBy: {
         type: String
     },
+    cancelledById: {
+        type: String
+    },
     reviewed: {
         type: Boolean
     },
     reviewedBy: {
         type: String
     },
+    reviewedById: {
+        type: String
+    },
+    closed : {
+        type: Boolean
+    },
+    createdByVendor: {
+        type: Boolean
+    },
+    createdByVendorData:{
+        name:{
+            type: String
+        },
+        email: {
+            type: String
+        }
+    }
 
 
 }, { timestamps: true })

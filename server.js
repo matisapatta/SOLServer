@@ -135,6 +135,15 @@ app.post('/api/updatesala', (req, res) => {
   })
 })
 
+app.post('/api/deletesala', (req, res) => {
+  Sala.findByIdAndRemove(req.query.id, (err, doc) => {
+    if (err) {
+      return res.json(err)
+    }
+    res.status(200).json({ deleted: true })
+  })
+})
+
 
 
 
@@ -162,22 +171,50 @@ app.get('/api/getreservationsbyuser', (req, res) => {
 
 app.get('/api/getreservationbyid', (req, res) => {
   let id = req.query._id;
+  let sendData = null;
   if (id.match(/^[0-9a-fA-F]{24}$/)) {
     // Yes, it's a valid ObjectId, proceed with `findById` call.
     Reservation.findById(id, (err, doc) => {
       if (err) {
-        console.log(err)
         return res.status(400).send(err);
       }
-      console.log(doc)
-      res.status(200).send(doc);
+      User.findById(doc.userId, (err, user) => {
+        if (err) return res.status(400).send(err)
+        sendData = {
+          _id: doc._id,
+          salaId: doc.salaId,
+          ownerId: doc.ownerId,
+          salaName: doc.salaName,
+          roomId: doc.roomId,
+          day: doc.day,
+          from: doc.from,
+          hours: doc.hours,
+          timestamp: doc.timestamp,
+          userId: doc.userId,
+          paid: doc.paid,
+          cancelled: doc.cancelled,
+          cancelledBy: doc.cancelledBy,
+          cancelledById: doc.cancelledById,
+          reviewed: doc.reviewed,
+          reviewedBy: doc.reviewedBy,
+          reviewedById: doc.reviewedById,
+          closed: doc.closed,
+          username: user.name + ' ' + user.lastname,
+          useremail: user.email,
+          userphone: user.phone,
+          createdAt: doc.createdAt,
+          updatedAt: doc.updatedAt
+        }
+        res.status(200).send(sendData)
+      })
+      // res.status(200).send(doc);
     })
   } else {
     return res.json({
       error: "No es un formato de ID de reserva válido"
     })
   }
-  
+
 })
 
 
@@ -195,7 +232,7 @@ app.post('/api/savereservation', (req, res) => {
 })
 
 app.post('/api/cancelreservation', (req, res) => {
-  Reservation.findByIdAndUpdate(req.query.id, { cancelled: true, cancelledBy: req.body.userid }, (err, doc) => {
+  Reservation.findByIdAndUpdate(req.query.id, { cancelled: true, cancelledById: req.body.userid, cancelledBy: req.body.username }, { new: true }, (err, doc) => {
     if (err) {
       console.log(err)
       return res.json({ reserv: false })
@@ -210,6 +247,16 @@ app.post('/api/deletereservation', (req, res) => {
       return res.json(err)
     }
     res.status(200).json({ deleted: true })
+  })
+})
+
+app.post('/api/closereservation', (req, res) => {
+  Reservation.findByIdAndUpdate(req.query.id, { closed: true }, { new: true }, (err, doc) => {
+    if (err) {
+      console.log(err)
+      return res.json({ reserv: false })
+    }
+    res.status(200).json({ reservation: doc })
   })
 })
 
