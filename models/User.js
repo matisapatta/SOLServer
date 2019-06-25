@@ -50,6 +50,9 @@ const userSchema = mongoose.Schema({
     }],
     token: {
         type: String
+    },
+    googleId: {
+        type: String
     }
 })
 
