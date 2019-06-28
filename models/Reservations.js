@@ -51,13 +51,16 @@ const reservationSchema = mongoose.Schema({
         type: Number
     },
     timestamp: {
-        type: String
+        type: Date
     },
     userId: {
         type: String
     },
     paid: {
-        type: Boolean
+        type: Number
+    },
+    numberDay: {
+        type: Number
     },
     cancelled: {
         type: Boolean

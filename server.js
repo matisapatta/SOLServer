@@ -398,7 +398,7 @@ app.post('/api/upload', function (req, res) {
         overwrite: true
       },
       function (error, result) {
-        console.log(result, error);
+        // console.log(result, error);
         res.json({
           pic: result.secure_url
         });
@@ -459,17 +459,259 @@ app.post('/api/pay', (req, res) => {
     },
     auto_return: 'approved',
   }
-  console.log(preference)
+  // console.log(preference)
   res.status(200)
   mercadopago.preferences.create(preference)
     .then(function (preference) {
-      console.log(preference)
+      // console.log(preference)
       return res.send(preference)
     }).catch(function (error) {
-      console.log(error)
+      // console.log(error)
       return res.send(error)
     });
 })
+
+
+/**************** REPORTS  ****************/
+
+
+/** Total ganado por dueño de sala */
+app.get('/api/totalmoneybyuser', (req, res) => {
+  const user = req.query.user;
+  const seven = req.query.seven;
+  if (seven) {
+    Reservation.find({ ownerId: user, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
+      if (err) {
+        return res.status(400).send(err);
+      }
+      let money = 0;
+      doc.forEach(function (item) {
+        money += item.paid;
+      })
+      res.status(200).json({ money });
+    })
+  } else {
+    Reservation.find({ ownerId: user }, (err, doc) => {
+      if (err) {
+        return res.status(400).send(err);
+      }
+      let money = 0;
+      doc.forEach(function (item) {
+        money += item.paid;
+      })
+      res.status(200).json({ money });
+    })
+  }
+})
+
+app.get('/api/totalmoneybysala', (req, res) => {
+  const user = req.query.user;
+  const seven = req.query.seven;
+  var ret = []
+  var query;
+  if (seven) {
+    Sala.find({ ownerId: user }, (err, doc) => {
+      if (err) {
+        return res.status(400).send(err);
+      }
+      doc.forEach(function (sala) {
+        query = Reservation.find({ salaId: sala._id, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
+          if (err) {
+            return res.status(400).send(err);
+          }
+          let money = 0;
+          doc.forEach(function (item) {
+            money += item.paid
+          })
+          ret.push({
+            sala: sala.name,
+            money,
+          });
+          // console.log(ret)
+        })
+      })
+      query.exec().then(function () {
+        res.status(200).send(ret);
+      })
+      // res.status(200).send(ret);
+    })
+  } else {
+    Sala.find({ ownerId: user }, (err, doc) => {
+      if (err) {
+        return res.status(400).send(err);
+      }
+      doc.forEach(function (sala) {
+        query = Reservation.find({ salaId: sala._id }, (err, doc) => {
+          if (err) {
+            return res.status(400).send(err);
+          }
+          let money = 0;
+          doc.forEach(function (item) {
+            money += item.paid
+          })
+          ret.push({
+            sala: sala.name,
+            money,
+          });
+          // console.log(ret)
+        })
+      })
+      query.exec().then(function () {
+        res.status(200).send(ret);
+      })
+      // res.status(200).send(ret);
+    })
+  }
+})
+
+/** Total ganado por sala */
+app.get('/api/moneybysala', (req, res) => {
+  const sala = req.query.sala;
+  const seven = req.query.seven;
+  if (seven) {
+    Reservation.find({ salaId: sala, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
+      if (err) {
+        return res.status(400).send(err);
+      }
+      let money = 0;
+      doc.forEach(function (item) {
+        money += item.paid;
+      })
+      res.status(200).json({ money });
+    }).sort({ salaName: 1 })
+  } else {
+    Reservation.find({ salaId: sala }, (err, doc) => {
+      if (err) {
+        return res.status(400).send(err);
+      }
+      let money = 0;
+      doc.forEach(function (item) {
+        money += item.paid;
+      })
+      res.status(200).json({ money });
+    }).sort({ salaName: 1 })
+  }
+})
+
+
+
+
+
+app.get('/api/reservationsbyday', (req, res) => {
+  const user = req.query.user;
+  const seven = req.query.seven;
+  var ret = []
+  var query;
+  Sala.find({ ownerId: user }).sort({ _id: 'asc' }).exec((err, doc) => {
+    if (err) {
+      return res.status(400).send(err);
+    }
+    doc.map(function (sala, i) {
+      if (seven) {
+        query = Reservation.find({ salaId: sala._id, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
+          if (err) {
+            return res.status(400).send(err);
+          }
+          let reserv = {
+            dom: 0,
+            lun: 0,
+            mar: 0,
+            mier: 0,
+            jue: 0,
+            vie: 0,
+            sab: 0,
+
+          }
+          doc.forEach(function (item) {
+            switch (item.numberDay) {
+              case 0:
+                reserv["dom"] += 1;
+                break;
+              case 1:
+                reserv["lun"] += 1;
+                break;
+              case 2:
+                reserv["mar"] += 1;
+                break;
+              case 3:
+                reserv["mier"] += 1;
+                break;
+              case 4:
+                reserv["jue"] += 1;
+                break;
+              case 5:
+                reserv["vie"] += 1;
+                break;
+              case 6:
+                reserv["sab"] += 1;
+                break;
+              default: null
+            }
+          })
+          ret.push({
+            sala: sala.name,
+            reserv,
+            total: doc.length,
+          });
+          console.log(ret)
+        })
+      } else {
+        query = Reservation.find({ salaId: sala._id }, (err, doc) => {
+          if (err) {
+            return res.status(400).send(err);
+          }
+          let reserv = {
+            dom: 0,
+            lun: 0,
+            mar: 0,
+            mier: 0,
+            jue: 0,
+            vie: 0,
+            sab: 0,
+
+          }
+          doc.forEach(function (item) {
+            switch (item.numberDay) {
+              case 0:
+                reserv["dom"] += 1;
+                break;
+              case 1:
+                reserv["lun"] += 1;
+                break;
+              case 2:
+                reserv["mar"] += 1;
+                break;
+              case 3:
+                reserv["mier"] += 1;
+                break;
+              case 4:
+                reserv["jue"] += 1;
+                break;
+              case 5:
+                reserv["vie"] += 1;
+                break;
+              case 6:
+                reserv["sab"] += 1;
+                break;
+              default: null
+            }
+          })
+          ret.push({
+            sala: sala.name,
+            reserv,
+            total: doc.length,
+          });
+
+        })
+      }
+
+    })
+    query.exec().then(function () {
+      res.status(200).send(ret);
+  })
+})
+})
+
 
 
 
