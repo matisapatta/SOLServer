@@ -93,6 +93,9 @@ const reservationSchema = mongoose.Schema({
         email: {
             type: String
         }
+    },
+    location: {
+        type: String
     }
 
 

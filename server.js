@@ -98,7 +98,6 @@ app.post('/api/testsalasave', (req, res) => {
   sala.save((err, doc) => {
 
     if (err) {
-      console.log(err)
       return res.json({ success: false })
     }
     res.status(200).json({
@@ -298,6 +297,18 @@ app.post('/api/savereview', (req, res) => {
   })
 })
 
+app.post('/api/markasreviewed', (req, res) => {
+  Reservation.findByIdAndUpdate(req.query.id, { reviewed: true, reviewedById: req.body.userid, reviewedBy: req.body.username }, { new: true }, (err, doc) => {
+    if (err) {
+      console.log(err)
+      return res.json({ reserv: false })
+    }
+    res.status(200).json({ reservation: doc })
+  })
+})
+
+
+
 /**************** USERS  ****************/
 
 /**************** GET  ****************/
@@ -390,7 +401,7 @@ app.post('/api/upload', function (req, res) {
   const file = req.body.file;
   const folder = req.body.folder;
   const name = req.body.name;
-  // console.log(req.body)
+
   if (file) {
     cloudinary.uploader.upload(file,
       {
@@ -398,7 +409,7 @@ app.post('/api/upload', function (req, res) {
         overwrite: true
       },
       function (error, result) {
-        // console.log(result, error);
+
         res.json({
           pic: result.secure_url
         });
@@ -459,14 +470,14 @@ app.post('/api/pay', (req, res) => {
     },
     auto_return: 'approved',
   }
-  // console.log(preference)
+
   res.status(200)
   mercadopago.preferences.create(preference)
     .then(function (preference) {
-      // console.log(preference)
+
       return res.send(preference)
     }).catch(function (error) {
-      // console.log(error)
+
       return res.send(error)
     });
 })
@@ -527,7 +538,7 @@ app.get('/api/totalmoneybysala', (req, res) => {
             sala: sala.name,
             money,
           });
-          // console.log(ret)
+
         })
       })
       query.exec().then(function () {
@@ -553,7 +564,7 @@ app.get('/api/totalmoneybysala', (req, res) => {
             sala: sala.name,
             money,
           });
-          // console.log(ret)
+
         })
       })
       query.exec().then(function () {
@@ -592,8 +603,6 @@ app.get('/api/moneybysala', (req, res) => {
     }).sort({ salaName: 1 })
   }
 })
-
-
 
 
 
