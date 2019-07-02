@@ -87,6 +87,10 @@ const salaSchema = mongoose.Schema({
   reviews: [{
     type: String
   }],
+  score:{
+    type: Number,
+    default: 0
+  },
   rooms: [roomSchema],
   ownerId: {
     type: String,

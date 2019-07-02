@@ -4,10 +4,19 @@ const reviewSchema = mongoose.Schema({
     salaId: {
         type: String
     },
+    salaName: {
+        type: String
+    },
     reservationId: {
         type: String
     },
-    reviewer: {
+    reviewerName: {
+        type: String
+    },
+    reviewerLastName: {
+        type: String
+    },
+    reviewerId: {
         type: String
     },
     score: {

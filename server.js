@@ -93,7 +93,6 @@ app.get('/api/getsalasowner', (req, res) => {
 /**************** POST ****************/
 
 app.post('/api/testsalasave', (req, res) => {
-  console.log(req.body)
   const sala = new Sala(req.body);
   sala.save((err, doc) => {
 
@@ -134,6 +133,57 @@ app.post('/api/updatesala', (req, res) => {
   })
 })
 
+// app.post('/api/addscoretosala', (req, res) => {
+//   const salaId = req.query.id;
+//   let score = 0;
+//   Review.find({ salaId: id }, (err, doc) => {
+//     if (err) {
+//       console.log(err)
+//       return res.json({ sala: false })
+//     }
+//     let acum = 0;
+//     doc.map((item, i) => {
+//       acum += item.score
+//     })
+//     score = acum / doc.length
+//   })
+//   Sala.findByIdAndUpdate(salaId, { score: score }, { new: true }, (err, doc) => {
+//     if (err) {
+//       console.log(err)
+//       return res.json({ sala: false })
+//     }
+
+//     res.status(200).json({
+//       // success: true,
+//       sala: doc
+//     })
+//   })
+// })
+
+function addScoreToSala(salaId) {
+  let score = 0;
+  let query = Review.find({ salaId: salaId }, (err, doc) => {
+    if (err) {
+      console.log(err)
+      return err;
+    }
+    let acum = 0;
+    doc.map((item, i) => {
+      acum += item.score
+    })
+    score = Math.round(acum / doc.length)
+  })
+  query.exec().then(function () {
+    Sala.findByIdAndUpdate(salaId, { score: score }, { new: true }, (err, doc) => {
+      if (err) {
+        console.log(err)
+        return err;
+      }
+      return doc;
+    })
+  })
+}
+
 app.post('/api/deletesala', (req, res) => {
   Sala.findByIdAndRemove(req.query.id, (err, doc) => {
     if (err) {
@@ -161,6 +211,16 @@ app.get('/api/getreservationsbysala', (req, res) => {
 app.get('/api/getreservationsbyuser', (req, res) => {
   let id = req.query._id;
   Reservation.find({ userId: id, cancelled: false }, (err, doc) => {
+    if (err) {
+      return res.status(400).send(err);
+    }
+    res.status(200).send(doc);
+  })
+})
+
+app.get('/api/getrestoreviewbyuser', (req, res) => {
+  let id = req.query._id;
+  Reservation.find({ userId: id, cancelled: false, closed: true }, (err, doc) => {
     if (err) {
       return res.status(400).send(err);
     }
@@ -282,17 +342,35 @@ app.get('/api/getreviewsbyuser', (req, res) => {
   })
 })
 
+app.get('/api/getreviewsbyreservationid', (req, res) => {
+  let id = req.query._id;
+  // console.log(id)
+  Review.find({ reservationId: id }, (err, doc) => {
+    if (err) {
+      return res.status(400).send(err);
+    }
+    // console.log(doc)
+    res.status(200).json({
+      // success: true,
+      review: doc
+    })
+  })
+})
+
 
 /**************** POST  ****************/
 
 app.post('/api/savereview', (req, res) => {
   const review = new Review(req.body);
+  const salaId = req.body.salaId
+  let returnDoc;
   review.save((err, doc) => {
-
     if (err) return res.json({ review: false })
+    returnDoc = doc
+    addScoreToSala(salaId)
     res.status(200).json({
       // success: true,
-      review: doc
+      savedReview: returnDoc
     })
   })
 })
@@ -662,7 +740,7 @@ app.get('/api/reservationsbyday', (req, res) => {
             reserv,
             total: doc.length,
           });
-          console.log(ret)
+          // console.log(ret)
         })
       } else {
         query = Reservation.find({ salaId: sala._id }, (err, doc) => {
@@ -717,8 +795,8 @@ app.get('/api/reservationsbyday', (req, res) => {
     })
     query.exec().then(function () {
       res.status(200).send(ret);
+    })
   })
-})
 })
 
 
