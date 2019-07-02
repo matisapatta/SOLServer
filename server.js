@@ -89,6 +89,13 @@ app.get('/api/getsalasowner', (req, res) => {
   })
 })
 
+app.get('/api/getsalasadmin', (req, res) => {
+  Sala.find({}, (err, doc) => {
+    if (err) return res.status(400).send(err);
+    res.status(200).send(doc);
+  })
+})
+
 
 /**************** POST ****************/
 
