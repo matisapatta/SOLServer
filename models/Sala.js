@@ -78,6 +78,9 @@ const salaSchema = mongoose.Schema({
       type: String
     },
   }],
+  specialClose:[{
+    type: Date
+  }],
   pricefrom: {
     type: Number
   },

@@ -8,7 +8,10 @@ const mongoose = require('mongoose');
 const fileUpload = require('express-fileupload');
 var cloudinary = require('cloudinary').v2;
 var mercadopago = require('mercadopago');
-
+var nodeMailer = require('nodemailer');
+// mail
+// mads.solutions@gmail.com
+// MADSM0bile*
 /*
 Schemas
  */
@@ -37,6 +40,49 @@ mercadopago.configure({
   sandbox: true,
   access_token: 'TEST-2929332727335212-061617-d76e5feadeeeb1c6907bcb7d470899cd-444651392'
 })
+
+
+
+function sendEmail(subject, mailto, data) {
+  let email;
+  var query = User.findById(mailto, (err, doc) => {
+    if (err) console.log(err)
+    email = doc.email;
+  })
+  query.exec().then(function () {
+    let transporter = nodeMailer.createTransport({
+      // host: 'smtp.gmail.com',
+      // port: 465,
+      // secure: true,
+      service: 'Gmail',
+      auth: {
+        user: 'mads.solutions@gmail.com',
+        pass: 'MADSM0bile*'
+      }
+    });
+    // console.log(email)
+    let mailOptions = {
+      from: '"Salas Online" <mads.solutions@gmail.com>', // sender address
+      to: "mati.sapatta@gmail.com", // list of receivers
+      // to: email,
+      subject: subject, // Subject line
+      // text: req.body.body, // plain text body
+      html: '<b>Email automático</b>' +
+        `<div>Se ha creado una nueva reserva, en ${data.salaName}, el ${data.timestamp}. El código de reserva es ${data._id}</div>`
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return console.log(error);
+      }
+      // console.log('Message %s sent: %s', info.messageId, info.response);
+      // res.render('index');
+    });
+  })
+}
+
+
+
+
 
 /**************** SALAS  ****************/
 
@@ -113,6 +159,25 @@ app.post('/api/testsalasave', (req, res) => {
   })
 })
 
+app.post('/api/closespecial', (req, res) => {
+  Sala.findByIdAndUpdate(req.body.id, { $push: { specialClose: req.body.date } }, { new: true }, (err, doc) => {
+    if (err) return res.json({ sala: false })
+    res.status(200).json({
+      // success: true,
+      sala: doc
+    })
+  })
+})
+
+app.post('/api/openspecial', (req, res) => {
+  Sala.findByIdAndUpdate(req.body.id, { $pull: { specialClose: req.body.date } }, { new: true }, (err, doc) => {
+    if (err) return res.json({ sala: false })
+    res.status(200).json({
+      // success: true,
+      sala: doc
+    })
+  })
+})
 
 app.post('/api/savesala', (req, res) => {
   const sala = new Sala(req.body);
@@ -293,6 +358,10 @@ app.post('/api/savereservation', (req, res) => {
       console.log(err)
       return res.json({ reserv: false })
     }
+    // Mail to user
+    sendEmail("Reserva creada con éxito", doc.userId, doc);
+    // Mail to vendor
+    sendEmail("Nueva reserva creada", doc.ownerId, doc);
     res.status(200).json({ reservation: doc })
   })
 })
@@ -417,7 +486,6 @@ app.get('/api/auth', auth, (req, res) => {
     reservations: req.user.reservations,
   })
 })
-
 
 
 app.get('/api/logout', auth, (req, res) => {
