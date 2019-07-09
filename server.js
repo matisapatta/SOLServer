@@ -9,6 +9,8 @@ const fileUpload = require('express-fileupload');
 var cloudinary = require('cloudinary').v2;
 var mercadopago = require('mercadopago');
 var nodeMailer = require('nodemailer');
+const bcrypt = require('bcrypt');
+const SALT_I = 10;
 // mail
 // mads.solutions@gmail.com
 // MADSM0bile*
@@ -42,8 +44,7 @@ mercadopago.configure({
 })
 
 
-
-function sendEmail(subject, mailto, data) {
+function sendEmail(subject, mailto, data, body) {
   let email;
   var query = User.findById(mailto, (err, doc) => {
     if (err) console.log(err)
@@ -67,8 +68,7 @@ function sendEmail(subject, mailto, data) {
       // to: email,
       subject: subject, // Subject line
       // text: req.body.body, // plain text body
-      html: '<b>Email automático</b>' +
-        `<div>Se ha creado una nueva reserva, en ${data.salaName}, el ${data.timestamp}. El código de reserva es ${data._id}</div>`
+      html: body
     };
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
@@ -79,8 +79,6 @@ function sendEmail(subject, mailto, data) {
     });
   })
 }
-
-
 
 
 
@@ -358,10 +356,15 @@ app.post('/api/savereservation', (req, res) => {
       console.log(err)
       return res.json({ reserv: false })
     }
+    const emailReservaOwner = '<b>Email automático</b>' +
+      `<div>Se ha creado una nueva reserva, en ${doc.salaName}, el ${doc.timestamp}. El código de reserva es ${doc._id}</div>`
+
+    const emailReservauser = '<b>Email automático</b>' +
+      `<div>Se ha creado una nueva reserva, en ${doc.salaName}, el ${doc.timestamp}. El código de reserva es ${doc._id}</div>`
     // Mail to user
-    sendEmail("Reserva creada con éxito", doc.userId, doc);
+    sendEmail("Reserva creada con éxito", doc.userId, doc, emailReservauser);
     // Mail to vendor
-    sendEmail("Nueva reserva creada", doc.ownerId, doc);
+    sendEmail("Nueva reserva creada", doc.ownerId, doc, emailReservaOwner);
     res.status(200).json({ reservation: doc })
   })
 })
@@ -498,20 +501,53 @@ app.get('/api/logout', auth, (req, res) => {
 
 /**************** POST  ****************/
 
+// app.post('/api/register', (req, res) => {
+//   const user = new User(req.body);
+//   user.save((err, doc) => {
+//     if (err) return res.json({ success: false })
+//     res.status(200).json({
+//       success: true,
+//       user: doc
+//     })
+//   })
+// })
+
 app.post('/api/register', (req, res) => {
   const user = new User(req.body);
   user.save((err, doc) => {
-    if (err) return res.json({ success: false })
-    res.status(200).json({
-      success: true,
-      user: doc
-    })
+    if (err) return res.json({ err, success: false })
+    if (doc.active) {
+      const emailBody = '<p>Bienvenido!</p>' +
+        '<div>Su usuario se encuentra activado. Ya puede empezar a utilizar nuestros servicios. Visite el siguiente link para comenzar</div>' +
+        `<div><a href='http://localhost:3000/'>http://localhost:3000/</a></div>`
+      // Mail
+      sendEmail("Bienvenido a Salas OnLine", doc._id, doc, emailBody);
+      doc.generateToken((err, doc) => {
+        if (err) return res.status(400).send(err);
+        res.cookie('auth', doc.token).json({
+          success: true,
+          user: doc
+        })
+      })
+    } else {
+      const emailBody = '<p>Bienvenido!</p>' +
+        '<div>Es necesario que active su usario. Para eso, haga click en el siguiente link</div>' +
+        `<div><a href='http://localhost:3000/activateuser/${doc._id}'>http://localhost:3000/activateuser/${doc._id}</a></div>`
+      // Mail
+      sendEmail("Activación de usuario requerida", doc._id, doc, emailBody);
+      res.status(200).json({
+        success: true,
+        user: doc
+      })
+    }
   })
 })
+
 
 app.post('/api/login', (req, res) => {
   User.findOne({ 'email': req.body.email }, (err, user) => {
     if (!user) return res.json({ isAuth: false, message: 'Email no encontrado' });
+    if (!user.active) return res.json({ isAuth: false, message: 'Usuario pendiente de activación' });
     user.comparePassword(req.body.password, function (err, isMatch) {
       if (!isMatch) return res.json({
         isAuth: false,
@@ -592,6 +628,74 @@ app.post('/api/userupdate', (req, res) => {
       phone: user.phone,
       reservations: user.reservations,
     })
+  })
+})
+
+app.post('/api/activateuser', (req, res) => {
+  User.findByIdAndUpdate(req.body._id, { active: true }, { new: true }, (err, user) => {
+    if (err) return res.status(400).send(err);
+    const emailBody = '<p>Bienvenido!</p>' +
+      '<div>Su usuario se encuentra activado. Ya puede empezar a utilizar nuestros servicios. Visite el siguiente link para comenzar</div>' +
+      `<div><a href='http://localhost:3000/'>http://localhost:3000/</a></div>`
+    // Mail
+    sendEmail("Bienvenido a Salas OnLine", user._id, user, emailBody);
+    res.json({
+      // success: true,
+      isAuth: true,
+      id: user._id,
+      role: user.role,
+      email: user.email,
+      name: user.name,
+      lastname: user.lastname,
+      avatar: user.avatar,
+      phone: user.phone,
+      reservations: user.reservations,
+    })
+  })
+})
+
+app.post('/api/resetpassword', (req, res) => {
+  User.findById(req.body._id, (err, doc) => {
+    if (err) return res.json({ err, success: false })
+    if (!doc.active) {
+      const user = new User(doc);
+      user.password = req.body.password;
+      user.active = true;
+      user.save((err, doc) => {
+        if (err) return res.json({ err, success: false })
+        res.status(200).json({ doc, success: true })
+      })
+    } else {
+      res.status(200).json({ msg: "Link expirado", success: false })
+    }
+  })
+})
+
+app.post('/api/changepassword', (req, res) => {
+  User.findById(req.body._id, (err, doc) => {
+    if (err) return res.json({ err, success: false })
+    const user = new User(doc);
+    user.password = req.body.password;
+    user.save((err, doc) => {
+      if (err) return res.json({ err, success: false })
+      res.status(200).json({ doc, success: true })
+    })
+  })
+})
+
+app.post('/api/forgotpassword', (req, res) => {
+  User.findOneAndUpdate({ email: req.body.email }, { active: false }, { new: true }, (err, doc) => {
+    if (err) return res.status(400).send(err)
+    if (doc) {
+      const emailBody = '<p>Cambio de contraseña</p>' +
+        '<div>Ha solicitado cambiar la contraseña. Por favor visite el siguiente link para cambiarla</div>' +
+        `<div><a href='http://localhost:3000/resetpassword/${doc._id}'>http://localhost:3000/resetpassword/${doc._id}</a></div>`
+      // Mail
+      sendEmail("Cambio de Contraseña", doc._id, doc, emailBody);
+      res.status(200).json({ success: true, doc })
+    } else {
+      res.json({ success: false, msg: "Email no encontrado" })
+    }
   })
 })
 
@@ -903,7 +1007,7 @@ app.get('/api/nextreservation', (req, res) => {
   })
 })
 
-app.get('/api/latestsala', (req, res)=>{
+app.get('/api/latestsala', (req, res) => {
   Sala.find().sort({ createdAt: 'desc' }).limit(1).exec((err, doc) => {
     if (err) return res.status(400).send(err);
     res.status(200).send(doc)

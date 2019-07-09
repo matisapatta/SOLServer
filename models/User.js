@@ -11,7 +11,7 @@ const SALT_I = 10;
 const userSchema = mongoose.Schema({
     email: {
         type: String,
-        required: true,
+        // required: true,
         trim: true,
         unique: 1
     },
@@ -23,16 +23,16 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        // required: true,
         minlength: 6
     },
     name: {
         type: String,
-        maxlength: 100
+        maxlength: 50
     },
     lastname: {
         type: String,
-        maxlength: 100
+        maxlength: 50
     },
     phone: {
         type: String
@@ -53,6 +53,10 @@ const userSchema = mongoose.Schema({
     },
     googleId: {
         type: String
+    },
+    active: {
+        type: Boolean,
+        default: false,
     }
 })
 

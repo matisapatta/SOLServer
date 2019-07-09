@@ -6,6 +6,7 @@ let auth = (req, res, next) => {
         if (err) throw err;
         if (!user) return res.json({
             isAuth: null
+            // hasToken: false
         });
         req.token = token;
         req.user = user;
