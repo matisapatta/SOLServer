@@ -874,8 +874,41 @@ app.get('/api/reservationsbyday', (req, res) => {
   })
 })
 
+app.get('/api/lastreview', (req, res) => {
+  Review.find().sort({ createdAt: 'desc' }).limit(3).exec((err, doc) => {
+    if (err) return res.status(400).send(err);
+    res.status(200).send(doc)
+  })
+})
 
+app.get('/api/nextreservation', (req, res) => {
+  const id = req.query.id;
+  const now = new Date();
+  var closest = Infinity;
+  var reserv = null;
+  var query = Reservation.find({ userId: id }, (err, doc) => {
+    if (err) return res.status(400).send(err);
+    doc.map((item, i) => {
+      var date = new Date(item.timestamp)
+      if (date >= now && (date < new Date(closest) || date < closest)) {
+        closest = item.timestamp;
+        reserv = item;
+        // console.log(reserv)
+      }
+    })
+  })
+  query.exec().then(function () {
+    // console.log(reserv)
+    res.status(200).send(reserv)
+  })
+})
 
+app.get('/api/latestsala', (req, res)=>{
+  Sala.find().sort({ createdAt: 'desc' }).limit(1).exec((err, doc) => {
+    if (err) return res.status(400).send(err);
+    res.status(200).send(doc)
+  })
+})
 
 const port = process.env.PORT || 3008;
 app.listen(port, () => {

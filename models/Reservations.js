@@ -38,6 +38,9 @@ const reservationSchema = mongoose.Schema({
     salaName: {
         type: String
     },
+    salaAddress:{
+        type: String
+    },
     roomId: {
         type: String
     },
