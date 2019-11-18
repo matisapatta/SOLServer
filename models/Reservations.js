@@ -1,31 +1,5 @@
 const mongoose = require('mongoose');
 
-// const reservationSchema = mongoose.Schema({
-//     ownerId: {
-//         type: String
-//     },
-//     roomId: {
-//         type: String
-//     },
-//     day : {
-//         type: String
-//     },
-//     from: {
-//         type: String
-//     },
-//     hours: {
-//         type: String
-//     },
-//     userId: {
-//         type: String
-//     },
-//     paid: {
-//         type: Boolean
-//     },
-//     // code: {
-//     //     type: String
-//     // }
-// })
 
 const reservationSchema = mongoose.Schema({
     salaId:

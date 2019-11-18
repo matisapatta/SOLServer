@@ -753,9 +753,14 @@ app.get('/api/totalmoneybyuser', (req, res) => {
         return res.status(400).send(err);
       }
       let money = 0;
-      doc.forEach(function (item) {
-        money += item.paid;
-      })
+      if (doc && doc.length === 0) {
+
+      } else {
+        doc.forEach(function (item) {
+          money += item.paid;
+        })
+      }
+
       res.status(200).json({ money });
     })
   } else {
@@ -764,13 +769,18 @@ app.get('/api/totalmoneybyuser', (req, res) => {
         return res.status(400).send(err);
       }
       let money = 0;
-      doc.forEach(function (item) {
-        money += item.paid;
-      })
+      if (doc && doc.length === 0) {
+
+      } else {
+        doc.forEach(function (item) {
+          money += item.paid;
+        })
+      }
       res.status(200).json({ money });
     })
   }
 })
+
 
 app.get('/api/totalmoneybysala', (req, res) => {
   const user = req.query.user;
@@ -782,25 +792,29 @@ app.get('/api/totalmoneybysala', (req, res) => {
       if (err) {
         return res.status(400).send(err);
       }
-      doc.forEach(function (sala) {
-        query = Reservation.find({ salaId: sala._id, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
-          if (err) {
-            return res.status(400).send(err);
-          }
-          let money = 0;
-          doc.forEach(function (item) {
-            money += item.paid
-          })
-          ret.push({
-            sala: sala.name,
-            money,
-          });
+      if (doc && doc.length === 0) {
+        return res.status(200).send(doc)
+      } else {
+        doc.forEach(function (sala) {
+          query = Reservation.find({ salaId: sala._id, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
+            if (err) {
+              return res.status(400).send(err);
+            }
+            let money = 0;
+            doc.forEach(function (item) {
+              money += item.paid
+            })
+            ret.push({
+              sala: sala.name,
+              money,
+            });
 
+          })
         })
-      })
-      query.exec().then(function () {
-        res.status(200).send(ret);
-      })
+        query.exec().then(function () {
+          res.status(200).send(ret);
+        })
+      }
       // res.status(200).send(ret);
     })
   } else {
@@ -808,25 +822,30 @@ app.get('/api/totalmoneybysala', (req, res) => {
       if (err) {
         return res.status(400).send(err);
       }
-      doc.forEach(function (sala) {
-        query = Reservation.find({ salaId: sala._id }, (err, doc) => {
-          if (err) {
-            return res.status(400).send(err);
-          }
-          let money = 0;
-          doc.forEach(function (item) {
-            money += item.paid
-          })
-          ret.push({
-            sala: sala.name,
-            money,
-          });
+      if (doc && doc.length === 0) {
+        return res.status(200).send(doc)
+      } else {
+        doc.forEach(function (sala) {
+          query = Reservation.find({ salaId: sala._id }, (err, doc) => {
+            if (err) {
+              return res.status(400).send(err);
+            }
+            let money = 0;
+            doc.forEach(function (item) {
+              money += item.paid
+            })
+            ret.push({
+              sala: sala.name,
+              money,
+            });
 
+          })
         })
-      })
-      query.exec().then(function () {
-        res.status(200).send(ret);
-      })
+        query.exec().then(function () {
+          res.status(200).send(ret);
+        })
+      }
+
       // res.status(200).send(ret);
     })
   }
@@ -842,9 +861,13 @@ app.get('/api/moneybysala', (req, res) => {
         return res.status(400).send(err);
       }
       let money = 0;
-      doc.forEach(function (item) {
-        money += item.paid;
-      })
+      if(doc && doc.length === 0 ){
+
+      } else {
+        doc.forEach(function (item) {
+          money += item.paid;
+        })
+      }
       res.status(200).json({ money });
     }).sort({ salaName: 1 })
   } else {
@@ -853,9 +876,13 @@ app.get('/api/moneybysala', (req, res) => {
         return res.status(400).send(err);
       }
       let money = 0;
-      doc.forEach(function (item) {
-        money += item.paid;
-      })
+      if(doc && doc.length === 0 ){
+
+      } else {
+        doc.forEach(function (item) {
+          money += item.paid;
+        })
+      }
       res.status(200).json({ money });
     }).sort({ salaName: 1 })
   }
@@ -872,109 +899,113 @@ app.get('/api/reservationsbyday', (req, res) => {
     if (err) {
       return res.status(400).send(err);
     }
-    doc.map(function (sala, i) {
-      if (seven) {
-        query = Reservation.find({ salaId: sala._id, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
-          if (err) {
-            return res.status(400).send(err);
-          }
-          let reserv = {
-            dom: 0,
-            lun: 0,
-            mar: 0,
-            mier: 0,
-            jue: 0,
-            vie: 0,
-            sab: 0,
-
-          }
-          doc.forEach(function (item) {
-            switch (item.numberDay) {
-              case 0:
-                reserv["dom"] += 1;
-                break;
-              case 1:
-                reserv["lun"] += 1;
-                break;
-              case 2:
-                reserv["mar"] += 1;
-                break;
-              case 3:
-                reserv["mier"] += 1;
-                break;
-              case 4:
-                reserv["jue"] += 1;
-                break;
-              case 5:
-                reserv["vie"] += 1;
-                break;
-              case 6:
-                reserv["sab"] += 1;
-                break;
-              default: null
+    if(doc && doc.length === 0) {
+      return res.status(200).send(doc);
+    } else {
+      doc.map(function (sala, i) {
+        if (seven) {
+          query = Reservation.find({ salaId: sala._id, timestamp: { $gte: new Date((new Date).getTime() - 7 * 24 * 60 * 60 * 1000) } }, (err, doc) => {
+            if (err) {
+              return res.status(400).send(err);
             }
-          })
-          ret.push({
-            sala: sala.name,
-            reserv,
-            total: doc.length,
-          });
-          // console.log(ret)
-        })
-      } else {
-        query = Reservation.find({ salaId: sala._id }, (err, doc) => {
-          if (err) {
-            return res.status(400).send(err);
-          }
-          let reserv = {
-            dom: 0,
-            lun: 0,
-            mar: 0,
-            mier: 0,
-            jue: 0,
-            vie: 0,
-            sab: 0,
-
-          }
-          doc.forEach(function (item) {
-            switch (item.numberDay) {
-              case 0:
-                reserv["dom"] += 1;
-                break;
-              case 1:
-                reserv["lun"] += 1;
-                break;
-              case 2:
-                reserv["mar"] += 1;
-                break;
-              case 3:
-                reserv["mier"] += 1;
-                break;
-              case 4:
-                reserv["jue"] += 1;
-                break;
-              case 5:
-                reserv["vie"] += 1;
-                break;
-              case 6:
-                reserv["sab"] += 1;
-                break;
-              default: null
+            let reserv = {
+              dom: 0,
+              lun: 0,
+              mar: 0,
+              mier: 0,
+              jue: 0,
+              vie: 0,
+              sab: 0,
+  
             }
+            doc.forEach(function (item) {
+              switch (item.numberDay) {
+                case 0:
+                  reserv["dom"] += 1;
+                  break;
+                case 1:
+                  reserv["lun"] += 1;
+                  break;
+                case 2:
+                  reserv["mar"] += 1;
+                  break;
+                case 3:
+                  reserv["mier"] += 1;
+                  break;
+                case 4:
+                  reserv["jue"] += 1;
+                  break;
+                case 5:
+                  reserv["vie"] += 1;
+                  break;
+                case 6:
+                  reserv["sab"] += 1;
+                  break;
+                default: null
+              }
+            })
+            ret.push({
+              sala: sala.name,
+              reserv,
+              total: doc.length,
+            });
+            // console.log(ret)
           })
-          ret.push({
-            sala: sala.name,
-            reserv,
-            total: doc.length,
-          });
-
-        })
-      }
-
-    })
-    query.exec().then(function () {
-      res.status(200).send(ret);
-    })
+        } else {
+          query = Reservation.find({ salaId: sala._id }, (err, doc) => {
+            if (err) {
+              return res.status(400).send(err);
+            }
+            let reserv = {
+              dom: 0,
+              lun: 0,
+              mar: 0,
+              mier: 0,
+              jue: 0,
+              vie: 0,
+              sab: 0,
+  
+            }
+            doc.forEach(function (item) {
+              switch (item.numberDay) {
+                case 0:
+                  reserv["dom"] += 1;
+                  break;
+                case 1:
+                  reserv["lun"] += 1;
+                  break;
+                case 2:
+                  reserv["mar"] += 1;
+                  break;
+                case 3:
+                  reserv["mier"] += 1;
+                  break;
+                case 4:
+                  reserv["jue"] += 1;
+                  break;
+                case 5:
+                  reserv["vie"] += 1;
+                  break;
+                case 6:
+                  reserv["sab"] += 1;
+                  break;
+                default: null
+              }
+            })
+            ret.push({
+              sala: sala.name,
+              reserv,
+              total: doc.length,
+            });
+          })
+        }
+  
+      })
+      query.exec().then(function () {
+        res.status(200).send(ret);
+      })
+    }
+    
   })
 })
 
