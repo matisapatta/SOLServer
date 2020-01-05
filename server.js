@@ -46,7 +46,7 @@ mercadopago.configure({
 })
 
 // Para heroku
-app.use(express.static('/client/build'))
+app.use(express.static('client/build'))
 
 function sendEmail(subject, mailto, data, body) {
   let email;
