@@ -5,7 +5,7 @@ const config = {
     },
     default: {
         SECRET: 'password',
-        DATABASE: 'mongodb://localhost:27017/booksShelf'
+        DATABASE: 'mongodb://localhost:27017/salasonline'
     }
 }
 

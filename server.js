@@ -11,6 +11,7 @@ var mercadopago = require('mercadopago');
 var nodeMailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const SALT_I = 10;
+const config = require('./config/config').get(process.env.NODE_ENV)
 // mail
 // mads.solutions@gmail.com
 // MADSM0bile*
@@ -26,7 +27,8 @@ const { auth } = require('./middleware/auth.js')
 
 const app = express();
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/salasonline');
+mongoose.connect(config.DATABASE)
+// mongoose.connect('mongodb://localhost:27017/salasonline');
 // var db = mongoose.connect('mongodb://localhost:27017/salasonline');
 mongoose.set('useFindAndModify', false);
 app.use(bodyParser.json({ limit: '50mb' }));
