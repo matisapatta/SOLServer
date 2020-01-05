@@ -45,6 +45,8 @@ mercadopago.configure({
   access_token: 'TEST-2929332727335212-061617-d76e5feadeeeb1c6907bcb7d470899cd-444651392'
 })
 
+// Para heroku
+app.use(express.static('/client/build'))
 
 function sendEmail(subject, mailto, data, body) {
   let email;
@@ -863,7 +865,7 @@ app.get('/api/moneybysala', (req, res) => {
         return res.status(400).send(err);
       }
       let money = 0;
-      if(doc && doc.length === 0 ){
+      if (doc && doc.length === 0) {
 
       } else {
         doc.forEach(function (item) {
@@ -878,7 +880,7 @@ app.get('/api/moneybysala', (req, res) => {
         return res.status(400).send(err);
       }
       let money = 0;
-      if(doc && doc.length === 0 ){
+      if (doc && doc.length === 0) {
 
       } else {
         doc.forEach(function (item) {
@@ -901,7 +903,7 @@ app.get('/api/reservationsbyday', (req, res) => {
     if (err) {
       return res.status(400).send(err);
     }
-    if(doc && doc.length === 0) {
+    if (doc && doc.length === 0) {
       return res.status(200).send(doc);
     } else {
       doc.map(function (sala, i) {
@@ -918,7 +920,7 @@ app.get('/api/reservationsbyday', (req, res) => {
               jue: 0,
               vie: 0,
               sab: 0,
-  
+
             }
             doc.forEach(function (item) {
               switch (item.numberDay) {
@@ -966,7 +968,7 @@ app.get('/api/reservationsbyday', (req, res) => {
               jue: 0,
               vie: 0,
               sab: 0,
-  
+
             }
             doc.forEach(function (item) {
               switch (item.numberDay) {
@@ -1001,13 +1003,13 @@ app.get('/api/reservationsbyday', (req, res) => {
             });
           })
         }
-  
+
       })
       query.exec().then(function () {
         res.status(200).send(ret);
       })
     }
-    
+
   })
 })
 
@@ -1046,6 +1048,14 @@ app.get('/api/latestsala', (req, res) => {
     res.status(200).send(doc)
   })
 })
+
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  app.get('/*',(req,res)=>{
+    res.sendFile(path.resolve(__dirname,'../client','build','index.html'));
+  });
+
+}
 
 const port = process.env.PORT || 3008;
 app.listen(port, () => {
