@@ -62,7 +62,7 @@ function sendEmail(subject, mailto, data, body) {
       service: 'Gmail',
       auth: {
         user: 'mads.solutions@gmail.com',
-        pass: 'MADSM0bile*'
+        pass: 'MADSM0bile2*'
       }
     });
     // console.log(email)
