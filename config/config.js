@@ -1,11 +1,13 @@
 const config = {
     production: {
         SECRET: process.env.SECRET,
-        DATABASE: process.env.MONGODB_URI
+        DATABASE: process.env.MONGODB_URI,
+        HOSTURL: 'https://protected-hamlet-06912.herokuapp.com'
     },
     default: {
         SECRET: 'password',
-        DATABASE: 'mongodb://localhost:27017/salasonline'
+        DATABASE: 'mongodb://localhost:27017/salasonline',
+        HOSTURL: 'http://localhost:3000'
     }
 }
 

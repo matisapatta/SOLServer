@@ -522,8 +522,10 @@ app.post('/api/register', (req, res) => {
     if (err) return res.json({ err, success: false })
     if (doc.active) {
       const emailBody = '<p>Bienvenido!</p>' +
+//        '<div>Su usuario se encuentra activado. Ya puede empezar a utilizar nuestros servicios. Visite el siguiente link para comenzar</div>' +
+//        `<div><a href='http://localhost:3000/'>http://localhost:3000/</a></div>`
         '<div>Su usuario se encuentra activado. Ya puede empezar a utilizar nuestros servicios. Visite el siguiente link para comenzar</div>' +
-        `<div><a href='http://localhost:3000/'>http://localhost:3000/</a></div>`
+       `<div><a href=${config.HOSTURL}>${config.HOSTURL}/</a></div>`
       // Mail
       sendEmail("Bienvenido a Salas OnLine", doc._id, doc, emailBody);
       doc.generateToken((err, doc) => {
@@ -535,8 +537,10 @@ app.post('/api/register', (req, res) => {
       })
     } else {
       const emailBody = '<p>Bienvenido!</p>' +
+        // '<div>Es necesario que active su usario. Para eso, haga click en el siguiente link</div>' +
+        // `<div><a href='http://localhost:3000/activateuser/${doc._id}'>http://localhost:3000/activateuser/${doc._id}</a></div>`
         '<div>Es necesario que active su usario. Para eso, haga click en el siguiente link</div>' +
-        `<div><a href='http://localhost:3000/activateuser/${doc._id}'>http://localhost:3000/activateuser/${doc._id}</a></div>`
+        `<div><a href='${config.HOSTURL}/activateuser/${doc._id}'>${config.HOSTURL}/activateuser/${doc._id}</a></div>`
       // Mail
       sendEmail("Activación de usuario requerida", doc._id, doc, emailBody);
       res.status(200).json({
@@ -640,7 +644,7 @@ app.post('/api/activateuser', (req, res) => {
     if (err) return res.status(400).send(err);
     const emailBody = '<p>Bienvenido!</p>' +
       '<div>Su usuario se encuentra activado. Ya puede empezar a utilizar nuestros servicios. Visite el siguiente link para comenzar</div>' +
-      `<div><a href='http://localhost:3000/'>http://localhost:3000/</a></div>`
+      `<div><a href='${config.HOSTURL}/'>${config.HOSTURL}/</a></div>`
     // Mail
     sendEmail("Bienvenido a Salas OnLine", user._id, user, emailBody);
     res.json({
@@ -693,7 +697,7 @@ app.post('/api/forgotpassword', (req, res) => {
     if (doc) {
       const emailBody = '<p>Cambio de contraseña</p>' +
         '<div>Ha solicitado cambiar la contraseña. Por favor visite el siguiente link para cambiarla</div>' +
-        `<div><a href='http://localhost:3000/resetpassword/${doc._id}'>http://localhost:3000/resetpassword/${doc._id}</a></div>`
+        `<div><a href='${config.HOSTURL}/resetpassword/${doc._id}'>${config.HOSTURL}/resetpassword/${doc._id}</a></div>`
       // Mail
       sendEmail("Cambio de Contraseña", doc._id, doc, emailBody);
       res.status(200).json({ success: true, doc })
@@ -725,9 +729,12 @@ app.post('/api/pay', (req, res) => {
     binary_mode: true,
     external_reference: req.body.reservationId,
     back_urls: {
-      success: `http://localhost:3000/paymentok/${req.body.reservationId}`,
-      failure: `http://localhost:3000/paymentko/${req.body.reservationId}`,
-      pending: `http://localhost:3000/paymentp/${req.body.reservationId}`,
+      // success: `http://localhost:3000/paymentok/${req.body.reservationId}`,
+      // failure: `http://localhost:3000/paymentko/${req.body.reservationId}`,
+      // pending: `http://localhost:3000/paymentp/${req.body.reservationId}`,
+      success: `${config.HOSTURL}/paymentok/${req.body.reservationId}`,
+      failure: `${config.HOSTURL}/paymentko/${req.body.reservationId}`,
+      pending: `${config.HOSTURL}/paymentp/${req.body.reservationId}`,
     },
     auto_return: 'approved',
   }
