@@ -68,8 +68,8 @@ function sendEmail(subject, mailto, data, body) {
     // console.log(email)
     let mailOptions = {
       from: '"Salas Online" <mads.solutions@gmail.com>', // sender address
-      to: "mati.sapatta@gmail.com", // list of receivers
-      // to: email,
+      //to: "mati.sapatta@gmail.com", // list of receivers
+       to: email,
       subject: subject, // Subject line
       // text: req.body.body, // plain text body
       html: body
