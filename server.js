@@ -95,6 +95,11 @@ app.get('/api/', function (req, res) {
   res.send('Andando')
 });
 
+app.get('/api/punchout', function (req, res) {
+  console.log(req)
+  res.send(res);
+});
+
 app.get('/api/getsala', function (req, res) {
   var query = Sala.find({})
   const name = req.query.name;
