@@ -84,6 +84,17 @@ function sendEmail(subject, mailto, data, body) {
   })
 }
 
+app.get('/api/punchoutget', function (req, res) {
+  console.log("punchout get")
+  console.log(req)
+  res.send("punchout get");
+});
+
+app.post('/api/punchoutpost', function (req, res) {
+  console.log("punchout post")
+  console.log(req)
+  res.send("punchout post");
+});
 
 
 /**************** SALAS  ****************/
@@ -95,10 +106,6 @@ app.get('/api/', function (req, res) {
   res.send('Andando')
 });
 
-app.get('/api/punchout', function (req, res) {
-  console.log(req)
-  res.send(res);
-});
 
 app.get('/api/getsala', function (req, res) {
   var query = Sala.find({})
