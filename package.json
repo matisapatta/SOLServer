@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/matisapatta/SOLServer#readme",
   "dependencies": {
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.0.0",
     "cloudinary": "^1.14.0",
     "cookie-parser": "^1.4.4",
     "ejs": "^2.6.2",
